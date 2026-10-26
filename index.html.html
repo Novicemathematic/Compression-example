@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Compressor Lab – Audio Compression with Logic Pro</title>
+<style>
+:root{--bg:#e8ecf0;--panel:#fff;--ink:#1a2230;--mute:#5d6878;--line:#cfd6df;--in:#8793a4;--out:#0b8a9c;--gr:#e08a00;--thr:#c2255c;--ok:#2b8a3e;--bad:#c92a2a;--grid:#e1e6ec;--soft:#f1f4f7;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161d;--panel:#1c222c;--ink:#e8edf4;--mute:#9aa6b6;--line:#303a48;--in:#6f7c8e;--out:#3cc7d9;--gr:#ffb13b;--thr:#ff6b9a;--ok:#69db7c;--bad:#ff8787;--grid:#262e3a;--soft:#232b37}}
+:root[data-theme="dark"]{--bg:#12161d;--panel:#1c222c;--ink:#e8edf4;--mute:#9aa6b6;--line:#303a48;--in:#6f7c8e;--out:#3cc7d9;--gr:#ffb13b;--thr:#ff6b9a;--ok:#69db7c;--bad:#ff8787;--grid:#262e3a;--soft:#232b37}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1120px;margin:0 auto;padding:16px}
+h1{font-size:24px;margin:0;letter-spacing:-.01em}
+h2{font-size:16px;margin:0 0 8px}
+.sub{color:var(--mute);margin:2px 0 0}
+.tabs{display:flex;gap:4px;margin:14px 0 12px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mute);font:inherit;font-weight:600;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected=true]{color:var(--ink);border-bottom-color:var(--gr)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:12px}
+@media(max-width:880px){.grid{grid-template-columns:1fr}}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.btn{font:inherit;font-weight:600;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer}
+.btn.pri{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+.btn.on{background:var(--gr);color:#1a1200;border-color:var(--gr)}
+.btn:focus-visible,.tabs button:focus-visible,input:focus-visible{outline:2px solid var(--out);outline-offset:2px}
+.sp{flex:1}
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--mute);margin-top:6px}
+.leg i{display:inline-block;width:14px;height:0;border-top:3px solid;vertical-align:middle;margin-right:5px}
+.cv{position:relative}
+canvas{display:block;width:100%}
+#cw{height:250px}
+#cc{aspect-ratio:1;max-height:320px;margin:0 auto}
+.ph{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);opacity:.6;left:0;display:none}
+.meter{height:10px;background:var(--soft);border:1px solid var(--line);border-radius:5px;overflow:hidden;flex:1;min-width:120px}
+.meter i{display:block;height:100%;width:0;background:var(--gr)}
+.num{font-variant-numeric:tabular-nums}
+.ctls{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px}
+@media(max-width:560px){.ctls{grid-template-columns:1fr}}
+.ctl label{display:flex;justify-content:space-between;font-weight:600}
+.ctl label span{color:var(--gr);font-variant-numeric:tabular-nums}
+.ctl small{color:var(--mute);display:block;font-size:12.5px;line-height:1.35}
+input[type=range]{width:100%;accent-color:var(--gr);margin:4px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13px;padding:4px 10px;border-radius:99px;border:1px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer}
+.stats{display:grid;grid-template-columns:1fr auto auto;gap:4px 14px;font-size:14px}
+.stats b{font-weight:600}.stats .h{color:var(--mute);font-size:12.5px}
+.ms{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line)}
+.ms:first-of-type{border-top:0}
+.ms .k{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none;display:grid;place-items:center;font-size:13px;margin-top:2px}
+.ms.done .k{background:var(--ok);border-color:var(--ok);color:var(--panel)}
+.ms small{color:var(--mute);display:block}
+.formula{background:var(--soft);border-radius:8px;padding:8px 10px;font-size:14px;margin-top:8px}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--mute);font-weight:600}
+.ovx{overflow-x:auto}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:720px){.two{grid-template-columns:1fr}}
+.opts{display:grid;gap:6px;margin:8px 0}
+.opts button{font:inherit;text-align:left;padding:8px 12px;border-radius:8px;border:1px solid var(--line);background:var(--soft);color:var(--ink);cursor:pointer}
+.opts button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 18%,var(--panel))}
+.opts button.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 18%,var(--panel))}
+.fb{margin:0;color:var(--mute);min-height:1.4em}
+ol{padding-left:20px;margin:6px 0}
+</style></head><body><div class="wrap">
+<h1>Compressor Lab</h1>
+<p class="sub">Practise the same controls as Logic Pro’s Compressor plug-in. Press play, then drag the sliders and listen. Headphones help.</p>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-t="sim">Simulator</button><button role="tab" aria-selected="false" data-t="guide">Logic Pro guide</button><button role="tab" aria-selected="false" data-t="quiz">Quick quiz</button></div>
+
+<section id="sim"><div class="grid"><div>
+ <div class="card">
+  <div class="bar"><button class="btn pri" id="play">▶ Play loop</button><button class="btn on" id="byp" aria-pressed="true">Compressor on</button><span class="sp"></span>
+   <span class="num" style="color:var(--mute);font-size:13px">Gain reduction</span><div class="meter"><i id="grb"></i></div><b class="num" id="grv" style="min-width:64px;text-align:right">0.0 dB</b></div>
+  <div class="cv"><canvas id="cw"></canvas><div class="ph" id="ph"></div></div>
+  <div class="leg"><span><i style="border-color:var(--in)"></i>Input</span><span><i style="border-color:var(--out)"></i>Output</span><span><i style="border-color:var(--thr);border-top-style:dashed"></i>Threshold</span><span><i style="border-color:var(--gr)"></i>Gain reduction (lower strip)</span></div>
+ </div>
+ <div class="card"><div class="bar"><h2 style="margin:0">Controls</h2><span class="sp"></span><div class="chips" id="pre"></div></div><div class="ctls" id="ctls"></div>
+  <div class="bar" style="margin:12px 0 0"><button class="btn" id="match">Match peak level (auto make-up)</button><small style="color:var(--mute)">Compare on/off at equal loudness, so “louder” doesn’t fool your ears.</small></div></div>
+</div><div>
+ <div class="card"><h2>Transfer curve</h2><canvas id="cc"></canvas>
+  <div class="ctl" style="margin-top:8px"><label>Test input level <span id="tinv">-10 dB</span></label><input type="range" id="tin" min="-60" max="0" step=".5" value="-10"></div>
+  <div class="formula num" id="fm"></div></div>
+ <div class="card"><h2>Your loop, measured</h2><div class="stats" id="st"></div></div>
+ <div class="card"><h2>Missions</h2><div id="ms"></div></div>
+</div></div></section>
+
+<section id="guide" hidden>
+ <div class="two"><div class="card"><h2>Open it in Logic Pro</h2><ol><li>Select an audio track (a vocal, drums or bass works well).</li><li>On the channel strip, click an empty <b>Audio FX</b> slot.</li><li>Choose <b>Dynamics ▸ Compressor</b>.</li><li>Play a loud section and watch the gain reduction meter.</li></ol>
+ <p class="sub">Logic’s Compressor has several circuit types (for example Platinum Digital, Studio VCA, Studio FET and Vintage Opto). Each has its own character, and the exact controls vary by type.</p></div>
+ <div class="card"><h2>A good workflow</h2><ol><li>Set a moderate ratio such as 3:1 and a medium attack.</li><li>Lower the threshold until the meter moves on the loudest parts.</li><li>Adjust attack and release by ear.</li><li>Add make-up gain to restore the lost level.</li><li>Switch the plug-in off and on again. Match the loudness first, then decide if it really sounds better.</li></ol></div></div>
+ <div class="card"><h2>Simulator control ↔ Logic Pro control</h2><div class="ovx"><table><tr><th>Control</th><th>What it does</th><th>Listen for</th></tr>
+ <tr><td><b>Threshold</b></td><td>The level where compression begins</td><td>Lower threshold means more of the signal is squeezed</td></tr>
+ <tr><td><b>Ratio</b></td><td>How much the signal above the threshold is reduced. 4:1 means 4 dB over becomes 1 dB over.</td><td>2:1 is gentle, 10:1 and above acts like a limiter</td></tr>
+ <tr><td><b>Attack</b></td><td>Time taken to reach full gain reduction</td><td>Slow attack lets drum hits poke through (punch). Fast attack tames them.</td></tr>
+ <tr><td><b>Release</b></td><td>Time taken to let go once the signal falls below the threshold</td><td>Too fast sounds jumpy. Too slow means the next note is squashed.</td></tr>
+ <tr><td><b>Knee</b></td><td>How smoothly compression starts around the threshold</td><td>Soft knee sounds more natural</td></tr>
+ <tr><td><b>Gain (make-up)</b></td><td>Raises the whole signal after compression</td><td>Restores loudness, so the track can sit louder in the mix</td></tr></table></div></div>
+ <div class="card"><h2>Common starting points (adjust by ear)</h2><div class="ovx"><table><tr><th>Source</th><th>Ratio</th><th>Attack / Release</th><th>Gain reduction</th></tr>
+ <tr><td>Vocal</td><td>2:1 to 4:1</td><td>Medium attack, medium release</td><td>3–6 dB on the loud words</td></tr>
+ <tr><td>Drums</td><td>4:1</td><td>Slower attack for punch, fast-ish release</td><td>4–8 dB</td></tr>
+ <tr><td>Bass</td><td>3:1 to 6:1</td><td>Medium attack, medium release</td><td>3–6 dB</td></tr>
+ <tr><td>Full mix (“glue”)</td><td>1.5:1 to 2:1</td><td>Slow attack, auto or medium release</td><td>1–3 dB</td></tr></table></div></div>
+ <p class="sub">This lab is a simplified model of a compressor for learning. It is not Logic Pro itself, and the real plug-in sounds richer.</p>
+</section>
+
+<section id="quiz" hidden><div id="qz"></div></section>
+</div>
+<script>
+const $=id=>document.getElementById(id),css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const P={thr:-24,ratio:4,att:10,rel:150,knee:6,mk:0},SR=8000,N=SR*2;
+const C=[['thr','Threshold',-60,0,.5,v=>v+' dB','Compression starts above this level'],['ratio','Ratio',1,20,.1,v=>(+v).toFixed(1)+' : 1','How strongly peaks are reduced'],['att','Attack',.5,100,.5,v=>v+' ms','How quickly it clamps down'],['rel','Release',10,1000,5,v=>v+' ms','How quickly it lets go'],['knee','Knee',0,30,1,v=>v+' dB','0 = abrupt, higher = gradual'],['mk','Make-up gain',0,24,.5,v=>'+'+v+' dB','Turns the whole signal up afterwards']];
+const PRE={'Gentle glue':[-20,2,30,200,12,0],'Punchy drums':[-26,4,30,100,6,0],'Heavy squash':[-34,10,1,80,0,0],'Pumping':[-32,6,1,600,3,0],'Limiter-ish':[-12,20,.5,50,0,0],'Off (1:1)':[-24,1,10,150,6,0]};
+/* signal: a 2 s drum loop with loud and soft hits */
+function gen(sr){const n=sr*2,o=new Float32Array(n);let s=7;const rnd=()=>{s=s*16807%2147483647;return s/1073741823-1};
+ const add=(t0,len,f,a)=>{const i0=Math.floor(t0*sr);for(let i=0;i<len*sr&&i0+i<n;i++)o[i0+i]+=a*f(i/sr)};
+ const kick=t=>Math.sin(2*Math.PI*(50*t+(100/30)*(1-Math.exp(-30*t))))*Math.exp(-t*11),snare=t=>(rnd()*.7+Math.sin(2*Math.PI*190*t)*.5)*Math.exp(-t*22),hat=t=>rnd()*Math.exp(-t*90);
+ [[0,1],[1,.45],[1.75,.7]].forEach(([t,v])=>add(t,.45,kick,.9*v));[[.5,.9],[1.5,.35]].forEach(([t,v])=>add(t,.35,snare,.6*v));
+ for(let k=0;k<8;k++)add(k*.25,.12,hat,k%2?.12:.25);
+ let m=0;for(const v of o)m=Math.max(m,Math.abs(v));for(let i=0;i<n;i++)o[i]*=.9/m;return o}
+function gc(x,p){const o=x-p.thr,W=p.knee;if(2*o<-W)return x;if(W>0&&2*Math.abs(o)<=W)return x+(1/p.ratio-1)*(o+W/2)**2/(2*W);return p.thr+o/p.ratio}
+function sim(x,sr,p){const n=x.length,y=new Float32Array(n),g=new Float32Array(n),ca=Math.exp(-1/(sr*p.att/1000)),cr=Math.exp(-1/(sr*p.rel/1000)),cd=Math.exp(-1/(sr*.005));let s=0,e=0;
+ for(let i=0;i<n;i++){const a=Math.abs(x[i]);e=Math.max(a,e*cd);const lv=20*Math.log10(e+1e-9),gr=Math.min(0,gc(lv,p)-lv);s=gr<s?ca*s+(1-ca)*gr:cr*s+(1-cr)*gr;g[i]=s;y[i]=x[i]*Math.pow(10,(s+p.mk)/20)}return{y,g}}
+const X=gen(SR),pk=a=>{let m=0;for(const v of a)m=Math.max(m,Math.abs(v));return 20*Math.log10(m+1e-9)},rms=a=>{let s=0;for(const v of a)s+=v*v;return 10*Math.log10(s/a.length+1e-12)};
+const inP=pk(X),inC=inP-rms(X);let R,S={};
+function fit(c){const d=devicePixelRatio||1,r=c.getBoundingClientRect();c.width=Math.max(1,r.width*d);c.height=Math.max(1,r.height*d);const g=c.getContext('2d');g.setTransform(d,0,0,d,0,0);return[g,r.width,r.height]}
+function drawWave(){const c=$('cw'),[g,w,h]=fit(c);if(w<2)return;const H=h-58,mid=H/2,W=Math.floor(w);
+ g.strokeStyle=css('--grid');g.beginPath();g.moveTo(0,mid);g.lineTo(w,mid);g.stroke();
+ const ta=Math.pow(10,P.thr/20);g.setLineDash([5,4]);g.strokeStyle=css('--thr');g.lineWidth=1.5;[mid-ta*mid,mid+ta*mid].forEach(y=>{g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke()});g.setLineDash([]);
+ const band=(a,col,al)=>{const t=[],b=[];for(let px=0;px<W;px++){const i0=Math.floor(px/W*N),i1=Math.max(i0+1,Math.floor((px+1)/W*N));let mn=0,mx=0;for(let i=i0;i<i1;i++){const v=a[i];if(v<mn)mn=v;if(v>mx)mx=v}t.push(mid-Math.min(1,mx)*mid);b.push(mid-Math.max(-1,mn)*mid)}
+  g.fillStyle=css(col);g.globalAlpha=al;g.beginPath();g.moveTo(0,t[0]);t.forEach((y,x)=>g.lineTo(x,y));for(let x=W-1;x>=0;x--)g.lineTo(x,b[x]);g.fill();g.globalAlpha=1};
+ band(X,'--in',.5);band(R.y,'--out',.85);
+ const y0=H+10,hh=h-y0-4;g.strokeStyle=css('--gr');g.lineWidth=1.5;g.beginPath();
+ for(let px=0;px<W;px++){const i0=Math.floor(px/W*N),i1=Math.max(i0+1,Math.floor((px+1)/W*N));let m=0;for(let i=i0;i<i1;i++)m=Math.min(m,R.g[i]);const y=y0+Math.min(1,-m/24)*hh;px?g.lineTo(px,y):g.moveTo(px,y)}g.stroke();
+ g.fillStyle=css('--mute');g.font='11px system-ui';g.fillText('0 dB',4,y0+10);g.fillText('-24',4,h-6)}
+function drawCurve(){const c=$('cc'),[g,w,h]=fit(c);if(w<2)return;const pd=30,S0=w-pd-8,x=d=>pd+(d+60)/60*S0,y=d=>8+(-Math.max(-60,Math.min(0,d)))/60*S0;
+ g.font='11px system-ui';g.fillStyle=css('--mute');g.strokeStyle=css('--grid');g.lineWidth=1;
+ for(let d=-60;d<=0;d+=10){g.beginPath();g.moveTo(x(d),8);g.lineTo(x(d),8+S0);g.moveTo(pd,y(d));g.lineTo(pd+S0,y(d));g.stroke();g.fillText(d,x(d)-8,h-6+(h-8-S0-8>0?0:0));g.fillText(d,2,y(d)+4)}
+ g.setLineDash([4,4]);g.strokeStyle=css('--in');g.beginPath();g.moveTo(x(-60),y(-60));g.lineTo(x(0),y(0));g.stroke();
+ g.strokeStyle=css('--thr');g.beginPath();g.moveTo(x(P.thr),8);g.lineTo(x(P.thr),8+S0);g.stroke();g.setLineDash([]);
+ g.strokeStyle=css('--out');g.lineWidth=2.5;g.beginPath();for(let d=-60;d<=0;d+=.5){const o=gc(d,P)+P.mk;d===-60?g.moveTo(x(d),y(o)):g.lineTo(x(d),y(o))}g.stroke();
+ const t=+$('tin').value,o=gc(t,P),gr=o-t;g.fillStyle=css('--gr');g.beginPath();g.arc(x(t),y(o+P.mk),6,0,7);g.fill();
+ $('tinv').textContent=t+' dB';$('fm').innerHTML=`Output = Threshold + (Input − Threshold) ÷ Ratio<br>`+(gr<-.05?`= ${P.thr} + (${t} − ${P.thr}) ÷ ${(+P.ratio).toFixed(1)} = <b>${o.toFixed(1)} dB</b><br>Gain reduction: <b>${(-gr).toFixed(1)} dB</b>`:`${t} dB is below the threshold, so it passes through unchanged.`)+(P.mk?`<br>Plus make-up gain: ${(o+P.mk).toFixed(1)} dB out`:'');
+ g.save();g.fillStyle=css('--mute');g.translate(12,h/2);g.restore()}
+const MS=[['Squash the peaks','Get the maximum gain reduction to 6 dB or more.',()=>S.mg>=6],['Gentle and transparent','Use a ratio of 3:1 or less with 2 to 5 dB of maximum gain reduction.',()=>P.ratio<=3&&S.mg>=2&&S.mg<=5],['Let the punch through','Attack of 25 ms or more, with at least 4 dB of gain reduction. Slow attack lets the hit through first.',()=>P.att>=25&&S.mg>=4],['Louder, not clipped','Reduce the crest factor by 3 dB or more, then use make-up gain so the output peak is within 1.5 dB of the input but below 0 dB.',()=>S.oc<=inC-3&&S.op>=inP-1.5&&S.op<=-.1]];
+function stats(){const op=pk(R.y),oc=op-rms(R.y);let mg=0;for(const v of R.g)mg=Math.max(mg,-v);S={op,oc,mg};
+ $('st').innerHTML=`<span class="h"></span><span class="h">In</span><span class="h">Out</span><b>Peak level</b><span class="num">${inP.toFixed(1)} dB</span><span class="num">${op.toFixed(1)} dB</span><b>Crest factor</b><span class="num">${inC.toFixed(1)} dB</span><span class="num">${oc.toFixed(1)} dB</span><b>Max gain reduction</b><span></span><span class="num">${mg.toFixed(1)} dB</span><span class="h" style="grid-column:1/-1">Crest factor is peak minus average level. Compression makes it smaller, so the loop sounds more even.</span>`;
+ $('ms').innerHTML=MS.map(m=>{const d=m[2]();return`<div class="ms ${d?'done':''}"><div class="k">${d?'✓':''}</div><div><b>${m[0]}</b><small>${m[1]}</small></div></div>`}).join('')}
+/* audio: the sound you hear is the same simulation you see */
+let ctx,xa,ya,ga,dry,wet,sd,sw,t0,playing=false,on=true,tm;
+const mkBuf=a=>{const b=ctx.createBuffer(1,a.length,ctx.sampleRate);b.copyToChannel(a,0);return b},mkSrc=(a,d,off)=>{const s=ctx.createBufferSource();s.buffer=mkBuf(a);s.loop=true;s.connect(d);s.start(0,off);return s},render=()=>{const r=sim(xa,ctx.sampleRate,P);ya=r.y;ga=r.g},mix=()=>{if(ctx){dry.gain.value=on?0:1;wet.gain.value=on?1:0}};
+function swap(){if(!playing)return;const off=(ctx.currentTime-t0)%2;render();try{sw.stop()}catch(e){}sw=mkSrc(ya,wet,off)}
+$('play').onclick=()=>{if(playing){sd.stop();sw.stop();playing=false;$('play').textContent='▶ Play loop';$('ph').style.display='none';return}
+ if(!ctx){ctx=new(window.AudioContext||window.webkitAudioContext)();xa=gen(ctx.sampleRate);const m=ctx.createGain();m.gain.value=.7;m.connect(ctx.destination);dry=ctx.createGain();wet=ctx.createGain();dry.connect(m);wet.connect(m)}
+ ctx.resume();render();mix();t0=ctx.currentTime+.05;sd=mkSrc(xa,dry,0);sw=mkSrc(ya,wet,0);playing=true;$('play').textContent='■ Stop';$('ph').style.display='block'};
+$('byp').onclick=()=>{on=!on;$('byp').textContent=on?'Compressor on':'Compressor bypassed';$('byp').classList.toggle('on',on);$('byp').setAttribute('aria-pressed',on);mix()};
+let sm=0;(function tick(){let gr=0;if(playing&&on){const p=((ctx.currentTime-t0)%2+2)%2,i=Math.floor(p*ctx.sampleRate);for(let k=0;k<400;k++)gr=Math.min(gr,ga[Math.max(0,i-k)]||0)}
+ sm=gr<sm?gr:sm+(gr-sm)*.12;$('grb').style.width=Math.min(100,-sm/24*100)+'%';$('grv').textContent=(-sm).toFixed(1)+' dB';
+ if(playing)$('ph').style.left=((((ctx.currentTime-t0)%2)+2)%2/2*100)+'%';requestAnimationFrame(tick)})();
+/* ui */
+function update(){R=sim(X,SR,P);drawWave();drawCurve();stats();clearTimeout(tm);tm=setTimeout(swap,50)}
+function build(){$('ctls').innerHTML=C.map(([k,l,mn,mx,st,f,d])=>`<div class="ctl"><label for="s_${k}">${l}<span id="v_${k}"></span></label><input type="range" id="s_${k}" min="${mn}" max="${mx}" step="${st}"><small>${d}</small></div>`).join('');
+ C.forEach(([k,,,,,f])=>$('s_'+k).oninput=e=>{P[k]=+e.target.value;$('v_'+k).textContent=f(P[k]);update()});
+ $('pre').innerHTML=Object.keys(PRE).map(n=>`<button class="chip">${n}</button>`).join('');
+ $('pre').onclick=e=>{const b=e.target.closest('button');if(!b)return;[P.thr,P.ratio,P.att,P.rel,P.knee,P.mk]=PRE[b.textContent];sync();update()}}
+function sync(){C.forEach(([k,,,,,f])=>{$('s_'+k).value=P[k];$('v_'+k).textContent=f(P[k])})}
+$('match').onclick=()=>{const q={...P,mk:0},o=pk(sim(X,SR,q).y);P.mk=Math.max(0,Math.min(24,Math.round((inP-o)*2)/2));sync();update()};
+$('tin').oninput=drawCurve;
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.setAttribute('aria-selected',x===b));['sim','guide','quiz'].forEach(t=>$(t).hidden=t!==b.dataset.t);if(b.dataset.t==='sim')update()});
+addEventListener('resize',()=>{drawWave();drawCurve()});matchMedia('(prefers-color-scheme:dark)').onchange=()=>{drawWave();drawCurve()};
+/* quiz */
+const Q=[{q:'A signal peaks at −10 dB. The threshold is −20 dB and the ratio is 4:1 (hard knee). What is the output level?',o:['−5 dB','−12.5 dB','−17.5 dB','−20 dB'],a:2,w:'The signal is 10 dB over the threshold. Divide by 4 to get 2.5 dB over, so −20 + 2.5 = −17.5 dB.'},
+{q:'You want a kick drum to keep its punch while the sustain is controlled. Which attack setting helps most?',o:['The fastest possible','A slower attack of around 20–30 ms','Attack has no effect on punch','Set the ratio to 1:1'],a:1,w:'A slower attack lets the first hit through before the compressor clamps down on the rest.'},
+{q:'Why is make-up gain used after compression?',o:['To bring back the level that was reduced','To make the threshold lower','To change the ratio','To remove noise'],a:0,w:'Compression lowers the peaks. Make-up gain turns the whole signal back up so it sounds louder and fuller.'},
+{q:'What does a soft knee do?',o:['Stops compression completely','Eases compression in gradually around the threshold','Makes the attack slower','Adds gain'],a:1,w:'A soft knee blends from no compression to full compression, which usually sounds more natural.'},
+{q:'A compressed version sounds “better” when you switch it on. What should you check first?',o:['That the ratio is above 10:1','That the plug-in is the Vintage type','That the loudness is matched, because louder often sounds better','Nothing, trust your first impression'],a:2,w:'Louder sounds better to our ears, so match the loudness before judging the compression itself.'}];
+let sc=0,an=0;$('qz').innerHTML=Q.map((q,i)=>`<div class="card"><b>${i+1}. ${q.q}</b><div class="opts">${q.o.map((o,j)=>`<button data-i="${i}" data-j="${j}">${o}</button>`).join('')}</div><p class="fb" id="fb${i}"></p></div>`).join('')+'<p class="sub" id="sc"></p>';
+$('qz').onclick=e=>{const b=e.target.closest('button');if(!b)return;const i=+b.dataset.i,j=+b.dataset.j,q=Q[i];if(q.d)return;q.d=1;an++;const ok=j===q.a;if(ok)sc++;b.classList.add(ok?'ok':'bad');b.parentNode.children[q.a].classList.add('ok');$('fb'+i).textContent=(ok?'Correct. ':'Not quite. ')+q.w;if(an===Q.length)$('sc').textContent=`Score: ${sc} / ${Q.length}`};
+build();sync();update();
+</script></body></html>
